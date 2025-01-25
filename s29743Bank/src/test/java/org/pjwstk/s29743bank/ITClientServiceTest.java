@@ -19,9 +19,14 @@ class ITClientServiceTest {
     @MockitoBean
     private ClientStorage clientStorage;
 
-    @Autowired
+    //@Autowired
+    @InjectMocks
     private ClientService clientService;
 
+    @BeforeEach
+    void openMocks() {
+        MockitoAnnotations.openMocks(this);
+    }
 
 
     @Test
@@ -32,5 +37,40 @@ class ITClientServiceTest {
 
         assertThat(client.getId()).isEqualTo(1);
         assertThat(client.getMoney()).isEqualTo(1000.00);
+    }
+
+    @Test
+    void ShouldThrowException(){
+        when(clientStorage.getClient(anyInt())).thenReturn(null);
+
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            clientService.getClient(2);
+        });
+
+        assertThat(exception.getMessage()).isEqualTo("Cant find client");
+    }
+
+    @Test
+    void ShouldAddMoney() throws Exception {
+        when(clientStorage.getClient(anyInt())).thenReturn(new Client(1, 1000.00));
+
+        Client client = clientService.getClient(3);
+
+        clientService.deposit(1, 100.00);
+
+        assertThat(client.getMoney()).isEqualTo(1100.00);
+    }
+
+
+    @Test
+    void ShouldSubtractMoney() throws Exception {
+        when(clientStorage.getClient(anyInt())).thenReturn(new Client(1, 1000.00));
+
+        Client client = clientService.getClient(4);
+
+        clientService.transfer(1, 100.00);
+
+        assertThat(client.getMoney()).isEqualTo(900.00);
     }
 }
